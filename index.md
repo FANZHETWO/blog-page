@@ -1,37 +1,75 @@
-## Welcome to GitHub Pages
+###文件名、关键字和标识符
 
-You can use the [editor on GitHub](https://github.com/FANZHETWO/blog-page/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+1、God的源文件以.go为后缀名，均有小写字母组成，过个部分则使用下划线_ 对他们进行分咯，如scanner_test.go。 文件名不包含空格或其他特殊字符。
+2、一个源文件大小没有限制
+3、go几乎所有的东西都有一个名称或标识符，有效的标识符必须以字符（可以使用UTF-8编码的字符或_）开头，然后紧跟着0个或者多个字符或Unicode数字，如：X56、group1、_x23
+4、_ 本身就是一个特殊的标识符，被称为空白标识符，可以用于变量声明或赋值（任何类型都可以赋值给它），但任何赋值给这个标识符的值都将被抛弃，因此这些值都不能在后续的代码中使用，也不可以使用这个标识符作为变量对其他变量进行赋值或运算。
+5、程序一般由关键字、常量、变量、运算符、类型和函数组成。
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+###Go程序的基本结构和要素
+源文件第一行指明这个文件属于哪个包，如：package main,表示一个可独立执行的程序，每个Go应用程序都包含一个名为mian的包。所有的包名都应该使用小写字母。
 
-### Markdown
+如果想要构建一个程序，则包和包内的所有文件都必须以正确的顺序进行编译。包的依赖关系决定了其构建顺序。属于同一个包的源文件必须全部被一起编译，一个包既是编译时的一个单元，因此根据惯例，每个目录都包含一个包。如果对一个包进行更改或重新编译，所有引用这个包的客户端程序都必须全部重新编译。
+Go中的包模型采用了显式依赖关系的机制来达到快速编译的目的，编译器会从后缀名为.o的对象文件（需要且只需要这个文件）中提取传递依赖类型的信息。
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+#####可见性规则
+当标识符（包括常量、变量、类型、函数名、结构字段等等）以大写字母开头的标识符对象可以被外部包的代码所使用（客户端程序需要先导入这个包），这被称为导出；标识符如果是小写字母开头，则对包外是不可见的，但是他们在整个包的内部都是可见并且可用的。
 
-```markdown
-Syntax highlighted code block
+#####注意事项
+如果导入一个包却没有使用它，则会在构建程序时引发错误，如imported and not used:os ,这正是遵循了Go的格言，“没有不必要的代码”
 
-# Header 1
-## Header 2
-### Header 3
+#####类型
+可以包含数据的变量（或者常量）可以使用不同的数据类型或类型来保存数据。使用var声明的变量的值会自动初始化为该类型的零值。类型定义了某个变量的值的集合与可对其进行操作的集合。
+类型可以是基本类型，如：int、float、boot、string；结构化的（复合的），如：struct、array、slice、map、channel；只描述类型的行为的，如：interface
+结构花的类型没有真正的值，它使用nil作为默认值。特别注意是，Go语言中不存在类型继承。
 
-- Bulleted
-- List
+####Go命名规范
+干净、可读的代码和简洁性是Goz追求的主要目标。通过gofmt来强制实现统一的代码风格。Go语言中对象的命名也应该是简介且有意义的。
 
-1. Numbered
-2. List
+####常量
+存储在常量中的数据类型只可以是布尔型、数字型（整数型、浮点型和复数）和字符串型
+常量定义格式const identifier [type] = value
+在Go语言中，你可以省略类型说明符[type],因为编译器可以根据变量的值来推断其类型。
+- 显示类型定义：const b string = "abc"
+- 隐式类型定义： const b = "abc"
+未定义类型的常量会在必要时刻根据上下文来获得相关类型。
+常量的值必须是能够在编译时就能够确定；
+- 正确  const c1 = 2/3
+错误 const c2 = getNumber() //引发构建错误：getNumber() used as value
+因为在编译起见自定义函数均属于未知，因为无法用于常量的赋值，但内置函数可以使用。如： len()
 
-**Bold** and _Italic_ and `Code` text
+单个变量的声明与赋值
+- 变量的声明格式：var <变量名称><变量类型>
+- 变量的赋值格式： <变量名称> = <表达式>
+- 声明的同时赋值: var <变量名称> 【变量类型】 = <表达式>
 
-[Link](url) and ![Image](src)
+多个变量的声明与赋值
+- 全局变量的声明可以使用var()的方式进行简写
+- 全局变量的声明不可以省略var ,但可使用并行方式
+- 所有变量都可以使用类型推断
+- 局部变量不可以使用var()的方式简写，只能使用并行方式
+
+```
+var (
+    //常规方式
+aaa = "hello"
+//使用并行方式以及类型推断
+sss,bbb = 1,2
+// ccc := 3// 不可以省略var 
+
+//多个变量的声明
+var a,b,c,d int
+//多个变量的赋值
+a,b,c,d = 1,2,3,4
+
+//多个变量声明的同时赋值
+var e,f,g,h int = 5,6,7,8
+//省略变量类型，由系统推断
+var i ,j,k,l = 9,10,11,12
+//多个变量声明与赋值的最简写法
+i,m,n,o :=12,23,34,45
+)
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/FANZHETWO/blog-page/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+####表达式
+表达式是一种特定的类型的值，它可以由其它的值以及运算符组合而成。每个类型都定义了可以和自己结合的运算符集合，如果你使用了不在这个集合中的运算符，则会在编译时获得编译错误。
